@@ -16,37 +16,26 @@ def fitness(arr):
     return 1.0/(1.0 + error(arr))
 
 def generate_population(): 
-    chromosomes = []
-
-    for _ in range(population_size):
-        chromosome = []
-        for _ in range(chromosome_size):
-            chromosome.append(np.random.randint(0, 31))
-        chromosomes.append(chromosome)
-
-    return chromosomes
+    return np.random.randint(0, 31, size=(population_size, chromosome_size))
 
 class Roulette: # Used to create new population using a distribution weighted towards the fittest
 
     def __init__(self, population) -> None:
         fitness_scores = np.array([fitness(chromosome) for chromosome in population])
-        probabilities = fitness_scores/np.sum(fitness_scores)
+        self.probabilities = fitness_scores/np.sum(fitness_scores)
         self.population = population
-        self.cumulative = np.cumsum(probabilities)
         print("Score: ", np.sum(fitness_scores))
     
     def spin(self):
-        sample = np.random.rand()
-        j = 0
-        while self.cumulative[j] < sample:
-            j += 1
-        return self.population[j]
-    
+        rng = np.random.default_rng()
+        # We sample from population using weighted distribution, with replacement
+        return rng.choice(self.population, population_size, p=self.probabilities)
+        
 def successor(population): # Gives the population one generation ahead of the one given
 
     roulette = Roulette(population)
 
-    new_population = [roulette.spin() for _ in range(population_size)]
+    new_population = roulette.spin()
 
     cross_over = np.random.rand(population_size) < cross_over_rate
 
@@ -95,7 +84,6 @@ def successor(population): # Gives the population one generation ahead of the on
         
     return new_population
 
-
 # Testing 
 
 test_population = np.array([[28, 24, 23, 18], [8, 22, 14, 25], [17, 3, 21, 27], [7, 30, 22, 26], [8, 8, 28, 23], [3, 29, 25, 12], [27, 28, 12, 18], [5, 6, 10, 14], [26, 22, 25, 13], [19, 10, 6, 10]])
@@ -103,8 +91,7 @@ test_population = np.array([[28, 24, 23, 18], [8, 22, 14, 25], [17, 3, 21, 27], 
 for i in range(num_generations):
     test_population = successor(test_population)
 
-
-#print(testPop)
+print(test_population)
 
 
     
