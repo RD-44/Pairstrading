@@ -70,8 +70,7 @@ if __name__ == '__main__':
     )
     df['date'] = pd.to_datetime(df['date']) # make sure it is a datetime type
     df.drop(labels='symbol', axis='columns', inplace=True)
-    df.insert(0, 'pair_id', np.full((df.shape[0],), 1), True)
-    
+
     # uploading to sql
     conn = sqlite3.connect(dbname)
     add_pair(conn, pairname, exchange)
@@ -82,6 +81,7 @@ if __name__ == '__main__':
             WHERE symbol = '{pairname}' AND exchange = '{exchange}';
             '''
         )
+    df.insert(0, 'pair_id', np.full((df.shape[0],), id), True)
     engine = create_engine(f'sqlite:///{dbname}')
     df.to_sql('OHLCV_Data', con=engine, index=False, if_exists='replace')
     conn.close()
