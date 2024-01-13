@@ -3,3 +3,4 @@
 *.db
 createdb.py
 upload.py
+.DS_Store
