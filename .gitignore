@@ -1,3 +1,5 @@
 *.ipynb
 *.csv
 *.db
+createdb.py
+upload.py
