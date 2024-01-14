@@ -57,6 +57,7 @@ class OHLCV:
                     columns = columns
                 ).set_index(['unix time', 'timestamp'])
                 )
+        csr.close()
         return dfs
             
 
