@@ -4,3 +4,4 @@
 ./scripts/createdb.py
 ./scripts/upload.py
 .DS_Store
+*.pyc
