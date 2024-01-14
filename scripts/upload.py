@@ -9,14 +9,22 @@ import pandas as pd
 
 def add_pair(conn, name, exchange):
     '''
-    adds a pairname to the reference table
+    adds a pairname to the reference table if
+    that pair and exchange doesnt exist in the table,
+    otherwise does nothing.
     '''
     csr = conn.cursor()
     csr.execute(
-        '''INSERT OR IGNORE INTO Pairs (symbol, exchange) VALUES (?,?)''',
-        (name, exchange)
+        f'''
+        SELECT id FROM Pairs WHERE symbol = '{name}' AND exchange = '{exchange}';
+        '''
     )
-    conn.commit()
+    if not csr.fetchall():
+        csr.execute(
+            '''INSERT INTO Pairs (symbol, exchange) VALUES (?,?);''',
+            (name, exchange)
+        ) 
+        conn.commit()
     csr.close()
 
 def add_data_from_df(conn, pairname, exchange, df):
@@ -24,13 +32,14 @@ def add_data_from_df(conn, pairname, exchange, df):
     Adds entire dataframe to sql table
     '''
     csr = conn.cursor()
-    id = csr.execute(
+    csr.execute(
             f'''
             SELECT id
             FROM Pairs
             WHERE symbol = '{pairname}' AND exchange = '{exchange}';
             '''
-        )
+    )
+    id = csr.fetchone()
     csr.executemany(
         '''
         INSERT INTO OHLCV_Data (
@@ -45,11 +54,11 @@ def add_data_from_df(conn, pairname, exchange, df):
             volume_base,
             tradecount
             )
-            VALUES (?,?,?,?,?,?,?,?,?,?)
+            VALUES (?,?,?,?,?,?,?,?,?,?);
         ''',
-        (np.c_[np.full((df.shape[0], 1), id), df.to_numpy()])
+        np.c_[np.full((df.shape[0],), id), df.to_numpy()].tolist()
     )
-    csr.commit()
+    conn.commit()
     csr.close()
     
 
@@ -61,27 +70,20 @@ if __name__ == '__main__':
     exchange = 'binance'            # CHANGE AS NEEDED
 
     # loading data into pandas
-    fname = 'Binance_ETHUSDT_2020_minute.csv' # CHANGE AS NEEDED
-    df = pd.read_csv(
-        fname,
-        skiprows=0,
-        header=1,
-        low_memory=False
-    )
-    df['date'] = pd.to_datetime(df['date']) # make sure it is a datetime type
-    df.drop(labels='symbol', axis='columns', inplace=True)
-
-    # uploading to sql
-    conn = sqlite3.connect(dbname)
-    add_pair(conn, pairname, exchange)
-    id = conn.execute(
-            f'''
-            SELECT id
-            FROM Pairs
-            WHERE symbol = '{pairname}' AND exchange = '{exchange}';
-            '''
+    # REPLACE YEARS WITH THE YEARS YOU HAVE CSV FILES FOR
+    for i in ['2020', '2021', '2022', '2023', '2024']:
+        fname = f'Binance_ETHUSDT_{i}_minute.csv' # CHANGE AS NEEDED
+        df = pd.read_csv(
+            fname,
+            skiprows=0,
+            header=1,
+            low_memory=False
         )
-    df.insert(0, 'pair_id', np.full((df.shape[0],), id), True)
-    engine = create_engine(f'sqlite:///{dbname}')
-    df.to_sql('OHLCV_Data', con=engine, index=False, if_exists='replace')
-    conn.close()
+        df.drop(labels=df.columns[2], axis='columns', inplace=True)
+
+        # uploading to sql
+        conn = sqlite3.connect(dbname)
+        add_pair(conn, pairname, exchange)
+        add_data_from_df(conn, pairname, exchange, df)
+    conn.close() 
+
