@@ -1,6 +1,6 @@
 *.ipynb
 *.csv
 *.db
-createdb.py
-upload.py
+./scripts/createdb.py
+./scripts/upload.py
 .DS_Store
