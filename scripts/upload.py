@@ -60,19 +60,17 @@ def add_data_from_df(conn, pairname, exchange, df):
     )
     conn.commit()
     csr.close()
-    
 
-
-
+name = 'MATICUSDT'
 if __name__ == '__main__':
     dbname = 'PairsTradingData.db'  # CHANGE AS NEEDED
-    pairname = 'ETHUSDT'            # CHANGE AS NEEDED
+    pairname = name          # CHANGE AS NEEDED
     exchange = 'binance'            # CHANGE AS NEEDED
 
     # loading data into pandas
     # REPLACE YEARS WITH THE YEARS YOU HAVE CSV FILES FOR
-    for i in ['2020', '2021', '2022', '2023', '2024']:
-        fname = f'Binance_ETHUSDT_{i}_minute.csv' # CHANGE AS NEEDED
+    for i in ['2024']:
+        fname = 'CSVs/' + name + '/Binance_' + name + f'_{i}_minute.csv' # CHANGE AS NEEDED
         df = pd.read_csv(
             fname,
             skiprows=0,
