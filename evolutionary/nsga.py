@@ -1,5 +1,6 @@
 import numpy as np
 
+
 class NSGA:
 
     def __init__(self, functions, population_size=10, num_objectives=2, chromosome_size=2, cross_over_rate=0.8, mutation_rate=0.5, eta=10) -> None:
@@ -38,10 +39,14 @@ class NSGA:
                 front.sort(key=lambda i: f(population[i]))
                 cd[front[0]] = cd[front[-1]] = float("inf")
                 for i in range(1, len(front) - 1):
-                    cd[front[i]] += (
-                        f(population[front[i + 1]]) -
-                        f(population[front[i - 1]])
-                    ) / (f(population[front[-1]]) - f(population[front[0]]))
+                    spread = f(population[front[-1]]) - f(population[front[0]])
+                    if spread != 0:
+                        cd[front[i]] += (
+                            f(population[front[i + 1]]) -
+                            f(population[front[i - 1]])
+                        ) / (f(population[front[-1]]) - f(population[front[0]]))
+                    else:
+                        cd[front[i]] = float('inf')
 
         return cd
 
@@ -106,7 +111,7 @@ class NSGA:
     def offspring(self, p1, p2):
         c1 = []
         c2 = []
-        for i in range(self.num_objectives):
+        for i in range(self.chromosome_size):
             # Use inverse cdf of simulated binary crossover operator
             u = np.random.random()
             b = (
