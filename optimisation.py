@@ -3,8 +3,10 @@ import numpy as np
 from data import util
 from evolutionary.nsga import NSGA
 
+
 def nzc(series):
     return np.sum(np.where(np.diff(np.signbit(series)))[0])
+
 
 def plot(functions):
     nsga = NSGA(functions)
@@ -18,6 +20,7 @@ def plot(functions):
               nsga.avg_objective(population, 1))
 
     print(population)
+
 
 # Create a SQLite database connection
 db_conn = sqlite3.connect("PairsTradingData.db")

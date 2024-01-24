@@ -1,4 +1,3 @@
-*.ipynb
 *.csv
 *.db
 ./scripts/createdb.py
