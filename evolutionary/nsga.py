@@ -3,7 +3,7 @@ import numpy as np
 
 class NSGA:
 
-    def __init__(self, functions, population_size=10, num_objectives=2, chromosome_size=2, cross_over_rate=0.8, mutation_rate=0.5, eta=10) -> None:
+    def __init__(self, functions, population_size=10, num_objectives=2, chromosome_size=2, cross_over_rate=0.6, mutation_rate=0.6, eta=8) -> None:
         self.functions = functions
         self.population_size = population_size
         self.chromosome_size = chromosome_size
@@ -19,7 +19,7 @@ class NSGA:
 
     def generate_population(self):
         return np.array(
-            [5*np.random.rand(self.population_size)-2.5
+            [np.random.rand(self.population_size)
              for _ in range(self.chromosome_size)]
         ).T
 
@@ -46,7 +46,7 @@ class NSGA:
                             f(population[front[i - 1]])
                         ) / (f(population[front[-1]]) - f(population[front[0]]))
                     else:
-                        cd[front[i]] = float('inf')
+                        cd[front[i]] = 0
 
         return cd
 
