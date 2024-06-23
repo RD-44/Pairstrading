@@ -3,8 +3,9 @@ import numpy as np
 
 class NSGA:
 
-    def __init__(self, functions, population_size=10, num_objectives=2, chromosome_size=2, cross_over_rate=0.6, mutation_rate=0.6, eta=8) -> None:
+    def __init__(self, functions, helper, population_size=10, num_objectives=2, chromosome_size=2, cross_over_rate=0.6, mutation_rate=0.6, eta=8) -> None:
         self.functions = functions
+        self.helper = helper
         self.population_size = population_size
         self.chromosome_size = chromosome_size
         self.cross_over_rate = cross_over_rate
@@ -24,8 +25,10 @@ class NSGA:
         ).T
 
     def dominates(self, a, b):
-        p = np.array([f(a) for f in self.functions])
-        q = np.array([f(b) for f in self.functions])
+        spread = self.helper(a)
+        p = np.array([f(spread) for f in self.functions])
+        spread = self.helper(b)
+        q = np.array([f(spread) for f in self.functions])
         return (p <= q).all() and (p < q).sum() > 0
         # checks all objectives are <= and at least one is <
 
@@ -36,15 +39,19 @@ class NSGA:
         cd = {i: 0 for i in range(len(population))}
         for front in fronts:
             for f in self.functions:
-                front.sort(key=lambda i: f(population[i]))
+                front.sort(key=lambda i: f(self.helper(population[i])))
+
                 cd[front[0]] = cd[front[-1]] = float("inf")
+
+                spread_first = self.helper(population[front[0]])
+                spread_last = self.helper(population[front[-1]])
                 for i in range(1, len(front) - 1):
-                    spread = f(population[front[-1]]) - f(population[front[0]])
-                    if spread != 0:
+                    gap = f(spread_last) - f(spread_first)
+                    if gap != 0:
                         cd[front[i]] += (
-                            f(population[front[i + 1]]) -
-                            f(population[front[i - 1]])
-                        ) / (f(population[front[-1]]) - f(population[front[0]]))
+                            f(self.helper(population[front[i + 1]])) -
+                            f(self.helper(population[front[i - 1]]))
+                        ) / gap
                     else:
                         cd[front[i]] = 0
 
@@ -187,4 +194,4 @@ class NSGA:
 
     def avg_objective(self, population, i):
         f = self.functions[i]
-        return np.mean(np.array([f(c) for c in population]))
+        return np.mean(np.array([f(self.helper(c)) for c in population]))
